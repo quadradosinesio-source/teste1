@@ -1,4 +1,77 @@
-<!-- SUBSTITUA o <script> atual por este -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Corrida do Personagem</title>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: Arial, sans-serif;
+    }
+
+    body {
+        background: linear-gradient(to top, #87CEEB, #ffffff);
+        overflow: hidden;
+    }
+
+    canvas {
+        display: block;
+        background: #6ab04c;
+    }
+
+    #info {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        color: white;
+        font-size: 22px;
+        font-weight: bold;
+        text-shadow: 2px 2px 4px #000;
+    }
+
+    #gameOver {
+        position: absolute;
+        top: 40%;
+        width: 100%;
+        text-align: center;
+        font-size: 42px;
+        color: red;
+        font-weight: bold;
+        display: none;
+        text-shadow: 2px 2px 5px black;
+    }
+
+    #restart {
+        position: absolute;
+        top: 55%;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 12px 25px;
+        font-size: 20px;
+        border: none;
+        background: orange;
+        color: white;
+        cursor: pointer;
+        display: none;
+        border-radius: 8px;
+    }
+
+    #restart:hover {
+        background: darkorange;
+    }
+</style>
+</head>
+<body>
+
+<div id="info">Pontos: 0</div>
+<div id="gameOver">GAME OVER</div>
+<button id="restart">Recomeçar</button>
+
+<canvas id="gameCanvas"></canvas>
+
 <script>
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -16,19 +89,14 @@ let player = {
     jumping: false
 };
 
-let gravity = 0.75;
+let gravity = 0.8;
 let obstacles = [];
 let score = 0;
-let speed = 4; // mais lento
+let speed = 6;
 let gameRunning = true;
-
-// controle de espaçamento
-let obstacleTimer = 0;
-let nextObstacle = 120; // frames até próximo obstáculo
 
 function createObstacle() {
     let height = 50 + Math.random() * 50;
-
     obstacles.push({
         x: canvas.width,
         y: canvas.height - height - 50,
@@ -36,16 +104,13 @@ function createObstacle() {
         height: height,
         color: "red"
     });
-
-    // novo tempo aleatório entre obstáculos
-    nextObstacle = 110 + Math.random() * 90;
-    obstacleTimer = 0;
 }
 
 function drawPlayer() {
     ctx.fillStyle = player.color;
     ctx.fillRect(player.x, player.y, player.width, player.height);
 
+    // Cabeça
     ctx.beginPath();
     ctx.arc(player.x + 25, player.y - 15, 15, 0, Math.PI * 2);
     ctx.fillStyle = "#f1c27d";
@@ -64,15 +129,13 @@ function updatePlayer() {
     if(player.y >= canvas.height - 120) {
         player.y = canvas.height - 120;
         player.jumping = false;
-        player.velocityY = 0;
     }
 }
 
 function drawObstacles() {
-    for(let i = obstacles.length - 1; i >= 0; i--) {
+    for(let i = 0; i < obstacles.length; i++) {
         let obs = obstacles[i];
         obs.x -= speed;
-
         ctx.fillStyle = obs.color;
         ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
 
@@ -96,7 +159,7 @@ function drawObstacles() {
 
 function jump() {
     if(!player.jumping) {
-        player.velocityY = -14;
+        player.velocityY = -15;
         player.jumping = true;
     }
 }
@@ -110,19 +173,12 @@ function endGame() {
 function restartGame() {
     obstacles = [];
     score = 0;
-    speed = 4;
-    obstacleTimer = 0;
-    nextObstacle = 120;
+    speed = 6;
     gameRunning = true;
-
     player.y = canvas.height - 120;
-    player.velocityY = 0;
-    player.jumping = false;
-
     document.getElementById("info").innerText = "Pontos: 0";
     document.getElementById("gameOver").style.display = "none";
     document.getElementById("restart").style.display = "none";
-
     gameLoop();
 }
 
@@ -136,13 +192,9 @@ function gameLoop() {
     updatePlayer();
     drawObstacles();
 
-    obstacleTimer++;
-    if(obstacleTimer >= nextObstacle) {
-        createObstacle();
-    }
+    if(Math.random() < 0.02) createObstacle();
 
-    // velocidade sobe lentamente
-    speed = 4 + (score * 0.15);
+    if(score > 0 && score % 5 === 0) speed = 6 + score / 5;
 
     requestAnimationFrame(gameLoop);
 }
@@ -157,3 +209,6 @@ document.getElementById("restart").addEventListener("click", restartGame);
 
 gameLoop();
 </script>
+
+</body>
+</html>
